@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <style>
+
+      body {
+        background-color: #393b3c;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      .container {
+        border-radius: 3px;
+        display: none;
+        position: relative;
+        float: left;
+        width: calc(100% - 40px);
+        height: auto;
+        margin:20px;
+      }
+
+      .row {
+        position: relative;
+        float: left;
+        width: 100%;
+        height: auto;
+      }
+
+      .container_info {
+        position: fixed;
+        display: block;
+        width: 100%;
+        height: 100%;
+        background-color: 00000078;
+        color: white;
+      }
+
+      .info_text {
+        position: relative;
+        position: left;
+        display: block;
+        width: 100%;
+        height: auto;
+        padding: 50px;
+        background-color: 0099FF;
+        color: white;
+      }
+
+      .istruction_text {
+        position: relative;
+        float: left;
+        display: block;
+        width: 100%;
+        height: 50%;
+        padding: 20px;
+        background-color: 0099FF;
+        color: white;
+      }
+
+      .info_button_container {
+        position: relative;
+        float: left;
+        display: block;
+        width: 100%;
+        height: auto;
+        padding: 50px;
+      }
+
+      .istruction_button {
+        position: relative;
+        position: left;
+        display: block;
+        width: 100%;
+        height: auto;
+        padding: 10px;
+        margin-right: 10px;
+      }
+
+      .istruction_button:hover {
+        color: black;
+      }
+
+      .info_button {
+        position: relative;
+        float: left;
+        display: block;
+        width: 100px;
+        height: auto;
+        padding: 10px;
+        border-radius: 5px;
+        margin: 20px;
+        margin-right: 10px;
+        text-align: center;
+        background-color: #0099FF;
+        text-transform: uppercase;
+        cursor: pointer; 
+      }
+
+      .start_button {
+        position: relative;
+        float: left;
+        display: block;
+        width: 30%;
+        height: auto;
+        padding: 10px;
+        border-radius: 5px;
+        margin-right: 10px;
+        text-align: center;
+        background-color: #0099FF;
+        text-transform: uppercase;
+        cursor: pointer; 
+      }
+
+      .start_button:hover {
+        color: black;
+      }
+
+      .box {
+        position: relative;
+        float: left;
+        border: 1px solid #9c9c9c;
+        height: 15px;
+        width: 15px;
+        cursor: pointer; 
+      }
+
+      .box:hover {
+        background-color: #0099FF;
+      }
+
+      .alert {
+        position: fixed;
+        top: 20%;
+        width: calc(100% - 20px);
+        padding: 20px;
+        background-color: #f44336;
+        color: white;
+        opacity: 1;
+        transition: opacity 0.6s;
+        margin-bottom: 15px;
+        border-radius:5px;
+        display: none;
+      }
+
+      .alert.success {background-color: #04AA6D;}
+      .alert.info {background-color: #2196F3;}
+      .alert.warning {background-color: #ff9800;}
+
+      .closebtn {
+        margin-left: 15px;
+        color: white;
+        font-weight: bold;
+        float: right;
+        font-size: 22px;
+        line-height: 20px;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      .closebtn:hover {
+        color: black;
+      }
+
+
+    </style>
+  </head>
+  <body>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <div id="container_info" class="container_info">
+      <div id="info_text" class="info_text"></div>
+      <div id="info_button_container" class="info_button_container">
+        <div id="prev_button" class="info_button" onclick="skip_info(false)" style="display:none" >prev</div>
+        <div id="next_button" onclick="skip_info(true)" class="info_button">next</div>
+      </div>
+    </div>
+    <div id="container" class="container"></div>
+    <div id="istruction_text" class="istruction_text" style="display:none ;" >Choose your cells and then press start<br><br>
+    </div>
+    <div id="istruction_button" class="istruction_text" style="display:none ;">  
+      <div id="start_button" onclick="start_trigger();" class="start_button">start</div>
+      <div id="stop_button" onclick="stop_trigger();" class="start_button" style="display:none ;">stop</div>
+    </div>
+    <div id="alert_info" class="alert info">
+      <span id="closebtn" onclick="close_gameover();" class="closebtn">&times;</span> 
+      <strong>GAME OVER!</strong>
+    </div>
+
+    <script>
+
+      var info = ["What is John Conway's game of life?<br><br>The Game of Life is the most famous example of a cellular automaton.<br>Its purpose is to show how life-like behaviors can emerge from simple rules and interactions among many bodies.", "Rules:<br><br>- Any living cell with less than two adjacent living cells dies, as by isolation effect.<br><br>- Any live cell with two or three adjacent live cells survives to the next generation.<br><br>- Any live cell with more than three adjacent live cells dies, as by overpopulation effect.<br><br>- Any dead cell with exactly three adjacent live cells becomes a live cell, as by the effect of reproduction."];
+
+var selected = [];
+var box_min = 0;
+var index_info = 0;
+var box_max = 400;
+var max_box_line = 20;
+var start = false;
+var alert = false; 
+var generations = 1;
+
+
+function get_cell(x,y,cell){
+
+  if(cell=="above"){
+
+    var new_x = (x*1)-1;
+    var coordinate = {x: new_x, y: y};
+
+  } else if(cell=="above-left"){
+
+    var new_x = (x*1)-1;
+    var new_y = (y*1)-1;
+    var coordinate = {x: new_x, y: new_y};
+
+  } else if(cell=="above-right"){
+
+    var new_x = (x*1)-1;
+    var new_y = (y*1)+1;
+    var coordinate = {x: new_x, y: new_y};
+
+  } else if(cell=="under"){
+
+    var new_x = (x*1)+1;
+    var coordinate = {x: new_x, y: y};
+
+  } else if(cell=="under-left"){
+
+    var new_x = (x*1)+1;
+    var new_y = (y*1)-1;
+    var coordinate = {x: new_x, y: new_y};
+
+  } else if(cell=="under-right"){
+
+    var new_x = (x*1)+1;
+    var new_y = (y*1)+1;
+    var coordinate = {x: new_x, y: new_y};
+
+  } else if(cell=="right"){
+
+    var new_y = (y*1)+1;
+    var coordinate = {x: x, y: new_y};
+
+  } else if(cell=="left"){
+
+    var new_y = (y*1)-1;
+    var coordinate = {x: x, y: new_y};
+
+  };
+
+  return coordinate;
+
+};
+
+function check_cell(x,y,cell){
+
+  if(cell=="above"){
+
+    var new_x = (x*1)-1;
+    if(new_x) return true;
+    else return false;
+
+  } else if(cell=="above-left"){
+
+    var new_x = (x*1)-1;
+    var new_y = (y*1)-1;
+    if(new_x && new_y) return true;
+    else return false;
+
+  } else if(cell=="above-right"){
+
+    var new_x = (x*1)-1;
+    y = y*1;
+    if(y == max_box_line) return false;
+    else {
+      var new_y = (y*1)+1;
+      if(new_x && new_y) return true;
+      else return false;
+    };
+
+  } else if(cell=="under"){
+
+    x = x*1;
+    if(x == max_box_line) return false;
+    else {
+      var new_x = (x*1)+1;
+      if(new_x) return true;
+      else return false;
+    }; 
+
+  } else if(cell=="under-left"){
+
+    var new_y = (y*1)-1;
+    x = x*1;
+    if(x == max_box_line) return false;
+    else {
+      var new_x = (x*1)+1;
+      if(new_x && new_y) return true;
+      else return false;
+    };
+
+
+  } else if(cell=="under-right"){
+
+    x = x*1;
+    if(x == max_box_line) return false;
+    var new_x = (x*1)+1;
+
+    y = y*1;
+    if(y == max_box_line) return false;
+    var new_y = (y*1)+1;
+
+    if(new_x && new_y) return true;
+    else return false;
+
+
+  } else if(cell=="right"){
+
+    y = y*1;
+    if(y == max_box_line) return false;
+    else {
+      var new_y = (y*1)+1;
+      if(new_y) return true;
+      else return false;
+    };
+
+  } else if(cell=="left"){
+
+    var new_y = (y*1)-1;
+    if(new_y) return true;
+    else return false;
+
+  };
+
+};
+
+function is_live(x,y,obj){
+
+  for (z = 0; z < obj.length; z++) {
+    if(obj[z].x==x && obj[z].y==y) return true;
+  };
+  return false;
+
+};
+
+function skip_info(action){
+
+  if(action==true){
+
+    document.getElementById("prev_button").style.display = "block";
+
+    if(index_info==(info.length*1)-2) {
+
+      document.getElementById("prev_button").style.display = "block";
+      document.getElementById("next_button").innerHTML = "let's go";
+
+
+    } else {
+
+      document.getElementById("next_button").innerHTML = "next";
+      document.getElementById("prev_button").style.display = "block";
+
+    }; 
+
+    if(index_info==info.length-1) {
+
+
+      load_grid();
+      document.getElementById("container_info").style.display = "none";
+      document.getElementById("container").style.display = "block";
+      document.getElementById("start_button").style.display = "block";
+      document.getElementById("istruction_button").style.display = "block";
+      document.getElementById("istruction_text").style.display = "block";
+      return;
+
+    } else index_info = (index_info*1)+1;
+
+  } else if(action==false){
+    if(index_info == 0) return;
+    else {
+      if(index_info == 1) document.getElementById("prev_button").style.display = "none";
+      else document.getElementById("prev_button").style.display = "block";
+
+      index_info = (index_info*1)-1;
+
+      if(index_info==info.length-1) document.getElementById("next_button").innerHTML = "Let's go";
+      else  document.getElementById("next_button").innerHTML = "Next";
+
+    };
+
+  };
+
+  document.getElementById("info_text").innerHTML = info[index_info];
+
+};
+
+function remove_selected(x,y){
+
+  var new_selected = [];
+  for (z = 0; z < selected.length; z++) {
+    if(selected[z].x !== x || selected[z].y !== y) new_selected.push(selected[z]);
+  };
+  return new_selected;
+
+};
+
+function click_me(box){
+
+  var x = box.getAttribute("x");
+  var y = box.getAttribute("y");
+  var check = box.getAttribute("check");
+  if(check=="true") {
+
+    box.setAttribute("check",false);
+    box.style.backgroundColor = "#393b3c";
+    selected = remove_selected(x,y);
+
+  } else {
+
+    box.setAttribute("check",true);
+    box.style.backgroundColor = "#0099FF";
+
+    var add = {x: x, y: y};
+    selected.push(add);
+    return selected;
+
+  };
+
+};
+
+function stop_trigger(){
+
+  reset_all();
+
+};
+
+function check_rule(x,y,rule){
+
+  var check = 0;
+
+  // console.log("\n\n\n");
+  // console.log("x: ",x," y: ",y);
+
+  if(check_cell(x,y,"above")){
+    var above = get_cell(x,y,"above");
+    if(is_live(above.x,above.y,selected)) check++;
+  };
+  // console.log("above: ",above);
+
+  if(check_cell(x,y,"above-right")){
+    var above_right = get_cell(x,y,"above-right");
+    if(is_live(above_right.x,above_right.y,selected)) check++;
+  };
+  // console.log("above_right: ",above_right);
+
+  if(check_cell(x,y,"above-left")){
+    var above_left = get_cell(x,y,"above-left");
+    if(is_live(above_left.x,above_left.y,selected)) check++;
+  };
+  // console.log("above_left: ",above_left);
+
+  if(check_cell(x,y,"under")){
+    var under = get_cell(x,y,"under");
+    if(is_live(under.x,under.y,selected)) check++;
+  };
+  // console.log("under: ",under);
+
+  if(check_cell(x,y,"under-right")){
+    var under_right = get_cell(x,y,"under-right");
+    if(is_live(under_right.x,under_right.y,selected)) check++;
+  };
+  // console.log("under_right: ",under_right);
+
+  if(check_cell(x,y,"under-left")){
+    var under_left = get_cell(x,y,"under-left");
+    if(is_live(under_left.x,under_left.y,selected)) check++;
+  };
+  // console.log("under_left: ",under_left);
+
+  if(check_cell(x,y,"right")){
+    var right = get_cell(x,y,"right");
+    if(is_live(right.x,right.y,selected)) check++;
+  };
+  // console.log("right: ",right);
+
+  if(check_cell(x,y,"left")){
+    var left = get_cell(x,y,"left");
+    if(is_live(left.x,left.y,selected)) check++;
+  };
+  // console.log("left: ",left);
+
+  if(x==10 && y==10) {
+    // console.log("rule: ",rule);
+    // console.log("check: ",check);
+  };
+
+  if(rule=="one"){
+
+    if(check < 2) return false;
+    else return true;
+
+  } else if(rule=="two"){
+
+    if(check == 2 || check == 3) return true;
+    else return false;
+
+  } else if(rule=="three"){
+
+    if(check > 3) return true;
+
+  } else if(rule=="four"){
+
+    if(check == 3) return true;
+    else return false;
+
+  };
+
+};
+
+function loop_looking(){
+
+  if(!start) return;
+
+  var xx = 1;
+  var yy = 1;
+  var zz = 1;
+
+  var lives_cells = [];
+
+  for (zz = 1; zz <= box_max; zz++) {
+
+
+    if(is_live(xx,yy,selected)){
+
+      var rules_one = check_rule(xx,yy,"one");
+      if(rules_one){
+        // if(xx==10 && yy==10) console.log("\nrules_one: +");
+        if(!is_live(xx,yy,lives_cells)){
+          var add = {x: xx, y: yy};
+          lives_cells.push(add);
+        };
+      };
+
+      var rules_two = check_rule(xx,yy,"two");
+      if(rules_two){
+        // if(xx==10 && yy==10) console.log("\nrules_two: +");
+        if(!is_live(xx,yy,lives_cells)){
+          var add = {x: xx, y: yy};
+          lives_cells.push(add);
+        };
+      };
+
+      var rules_three = check_rule(xx,yy,"three");
+      if(rules_three){
+        if(is_live(xx,yy,lives_cells)){
+
+          var new_lives_cells = [];
+          for (z = 0; z < lives_cells.length; z++) {
+            if(lives_cells[z].x !== xx || lives_cells[z].y !== yy) new_lives_cells.push(lives_cells[z]);
+          };
+          lives_cells = new_lives_cells;
+
+        };
+      };
+
+    } else {
+
+      var rules_four = check_rule(xx,yy,"four");
+      if(rules_four){
+        // if(xx==10 && yy==10) console.log("\nrules_four: -");
+        if(!is_live(xx,yy,lives_cells)){
+          var add = {x: xx, y: yy};
+          lives_cells.push(add);
+        };
+      };
+
+    };
+
+    yy++;
+
+    var new_row = zz % max_box_line;
+    if(!new_row) {
+      xx++;
+      yy=1;
+    };
+
+  };
+
+  generations ++;
+
+  selected = lives_cells; 
+
+  display_live_cells();
+
+};
+
+function start_trigger(){
+
+  start = true;
+
+  document.getElementById("start_button").style.display = "none";
+  document.getElementById("stop_button").style.display = "block";
+
+};
+
+function display_live_cells(){
+
+  if(selected.length==0){
+    game_over();
+    return;
+  };
+
+  document.getElementById("istruction_text").innerHTML = "generation count: "+generations;
+
+
+  $(".box").each(function() {
+
+    $(this).attr("check",false);
+    $(this).css("backgroundColor","#393b3c");
+
+  });
+
+  // console.log(selected);
+
+  for (z = 0; z < selected.length; z++) {
+
+    var box = $("div[x='"+selected[z].x+"'][y='"+selected[z].y+"']")[0];
+    box.style.backgroundColor = "#0099FF";
+
+  };
+
+};
+
+function load_grid(){
+
+  var x = 1;
+  var y = 1;
+  var z = 1;
+
+  var container = document.getElementById("container");
+
+  var row = document.createElement("div");
+  $(row).addClass("row");
+  $(row).attr("id","row"+x);
+  $(row).appendTo(container);
+
+  for (z = 1; z <= box_max; z++) {
+
+
+    var row = document.getElementById("row"+x);
+
+    var box = document.createElement("div");
+    $(box).addClass("box");
+    $(box).attr("x",x);
+    $(box).attr("y",y);
+    $(box).attr("check",false);
+    $(box).appendTo(row);
+    $(box).on("click",function(){
+      click_me(this);
+    });
+
+    // if(x==10 && y==10) $(box).css("background-color","red");
+
+    y++;
+
+    var new_row = z % max_box_line;
+
+    if(!new_row) {
+      x++;
+      y=1;
+
+      var row = document.createElement("div");
+      $(row).addClass("row");
+      $(row).attr("id","row"+x);
+      $(row).appendTo(container);
+
+    };
+
+  };
+
+};
+
+function reset_all(){
+
+  start = false;
+  generations = 1;
+  selected = [];
+
+  document.getElementById("start_button").style.display = "block";
+  document.getElementById("stop_button").style.display = "none";
+  document.getElementById("istruction_text").innerHTML = "Choose your cells and then press start";
+
+  $(".box").each(function() {
+
+    $(this).attr("check",false);
+    $(this).css("backgroundColor","#393b3c");
+
+  });
+
+};
+
+function game_over(){
+
+  alert=true;
+
+  reset_all();
+
+  var alert_info = document.getElementById("alert_info");
+  alert_info.style.opacity = "1";
+  setTimeout(function(){ alert_info.style.display = "block"; }, 600);
+
+};
+
+function close_gameover(){
+
+  alert=false;
+  var alert_info = document.getElementById("alert_info");
+  alert_info.style.opacity = "0";
+  setTimeout(function(){ alert_info.style.display = "none"; }, 600);
+
+};
+
+document.getElementById("info_text").innerHTML = info[index_info];
+
+document.body.addEventListener("keypress", function(event) {
+
+  if (event.key === "Enter") {
+
+    if(alert) close_gameover();
+    else {
+
+      event.preventDefault();
+      start_trigger();
+
+    };
+
+  } else if (event.key === "3") {
+
+    event.preventDefault();
+    skip_info(true);
+
+  } else if (event.key === "2") {
+
+    event.preventDefault();
+    skip_info(false);
+
+  } else {
+
+  };
+
+});
+
+myInterval = setInterval(loop_looking, 1000);
+
+/* TESTING
+
+      document.getElementById("container").style.display = "block";
+      document.getElementById("container_info").style.display = "none";
+
+      load_grid();
+      document.getElementById("container_info").style.display = "none";
+      document.getElementById("container").style.display = "block";
+      document.getElementById("start_button").style.display = "block";
+      document.getElementById("istruction_button").style.display = "block";
+      document.getElementById("istruction_text").style.display = "block";
+
+      */
+
+    </script>
+  </body>
+</html>
